@@ -11,6 +11,9 @@ func init() {
 
 	// Helper Function To Load Enviornment Variables
 	initializers.LoadEnvVariables()
+
+	// Connect To Database
+	initializers.ConnectDB()
 }
 
 func main() {

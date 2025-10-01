@@ -8,9 +8,9 @@ import (
 
 type Reward struct {
 	gorm.Model
-
-	UserId      int       `json:"userId"`
-	StockSymbol string    `json:"stockSymbol"`
-	Shares      float32   `json:"shares"`
-	RewardedAt  time.Time `json:"rewardedAt"`
+	UserID      uint      `json:"userId" gorm:"not null"`
+	StockSymbol string    `json:"stockSymbol" gorm:"size:20;not null"`
+	Action      string    `json:"action" gorm:"not null"`
+	Shares      float64   `json:"shares" gorm:"not null"`
+	RewardedAt  time.Time `json:"rewardedAt" gorm:"not null"`
 }
