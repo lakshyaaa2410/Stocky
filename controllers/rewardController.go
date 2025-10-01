@@ -56,7 +56,7 @@ func AddReward(ginCtx *gin.Context) {
 	if response.Error != nil {
 		ginCtx.JSON(http.StatusConflict, gin.H{
 			"status":  "failed",
-			"message": "Onboarding Reward Already Given",
+			"message": response.Error.Error(),
 		})
 
 		return
