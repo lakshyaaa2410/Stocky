@@ -30,8 +30,6 @@ func StockRewardsToday(ginCtx *gin.Context) {
 
 	// Checking If User With That ID Exists
 	err = initializers.DB.Where("user_id = ?", userId).First(&reward).Error
-
-	// Checking If The User Is Present Or Not
 	if err != nil {
 		ginCtx.JSON(http.StatusNotFound, gin.H{
 			"status":  "failed",
