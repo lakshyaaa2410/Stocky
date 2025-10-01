@@ -25,13 +25,13 @@ func main() {
 	router.POST("/reward", controllers.AddReward)
 
 	// GET Method To Fetch All The Records Of Today's Stock.
-	router.GET("/today-stocks/:userId", controllers.StockRewardsToday)
+	router.GET("/today-stocks/:userId", controllers.GetStockRewardsToday)
 
 	// GET Method To Fetch User Stats
-	router.GET("/stats/:userId", controllers.UserStats)
+	router.GET("/stats/:userId", controllers.GetUserStats)
 
 	// GET Method To Fetch Stock History Of An User
-	router.GET("/historical-inr/:userId", controllers.StockHistory)
+	router.GET("/historical-inr/:userId", controllers.GetStockHistory)
 
 	// The Server Runs On The Port Number Specified In .env File.
 	// If No Value Is Present, It Runs On 8080 By Default (8080 Should Not Be Occupied)

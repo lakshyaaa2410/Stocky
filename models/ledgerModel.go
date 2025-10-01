@@ -16,5 +16,6 @@ type Ledger struct {
 	AmountUnit      string    `json:"amountUnit" gorm:"not null"`
 	FlowType        string    `json:"flowType" gorm:"not null"`
 	Action          string    `json:"action" gorm:"not null"`
+	Account         string    `json:"account" gorm:"not null"`
 	EnteredAt       time.Time `json:"enteredAt" gorm:"autoUpdateTime"`
 }

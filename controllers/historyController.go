@@ -8,7 +8,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-func StockHistory(ginCtx *gin.Context) {
+func GetStockHistory(ginCtx *gin.Context) {
 	userIdStr := ginCtx.Param("userId")
 	userId, err := strconv.Atoi(userIdStr)
 

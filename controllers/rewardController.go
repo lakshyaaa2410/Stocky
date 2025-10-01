@@ -13,7 +13,7 @@ import (
 	"gorm.io/gorm"
 )
 
-func StockRewardsToday(ginCtx *gin.Context) {
+func GetStockRewardsToday(ginCtx *gin.Context) {
 
 	// Converting UserID From String To Int
 	userIdStr := ginCtx.Param("userId")
@@ -174,45 +174,84 @@ func createLedgerEntries(reward *models.Reward, stockPrice *models.StockPrice) [
 	brokerage, gst := getDeductions(reward.Shares, stockPrice.StockPrice)
 
 	var ledgerEntries = []models.Ledger{
-		// This Entry Is For Stocks Debited.
+		// These 2 Entries Are For Stocks
 		{
 			RewardID:        reward.ID,
 			UserID:          reward.UserID,
-			Action:          reward.Action,
 			TransactionType: "Stocks",
 			Amount:          reward.Shares,
 			AmountUnit:      "Stock",
 			FlowType:        "Debit",
+			Account:         "Company",
 		},
-		// This Entry Is For Cash Transaction.
 		{
 			RewardID:        reward.ID,
 			UserID:          reward.UserID,
-			Action:          reward.Action,
-			TransactionType: "Cash Transaction",
-			Amount:          (reward.Shares * stockPrice.StockPrice),
+			TransactionType: "Stocks",
+			Amount:          reward.Shares,
+			AmountUnit:      "Stock",
+			FlowType:        "Credit",
+			Account:         "User",
+		},
+
+		// These 2 Entries Are For Cash Transaction
+		{
+			RewardID:        reward.ID,
+			UserID:          reward.UserID,
+			TransactionType: "Cash",
+			Amount:          reward.Shares * stockPrice.StockPrice,
 			AmountUnit:      "INR",
 			FlowType:        "Credit",
+			Account:         "Company",
 		},
-		// This Entry Is For GST Deduction (Assuming 18%)
 		{
 			RewardID:        reward.ID,
 			UserID:          reward.UserID,
-			Action:          reward.Action,
+			TransactionType: "Cash",
+			Amount:          reward.Shares * stockPrice.StockPrice,
+			AmountUnit:      "INR",
+			FlowType:        "Debit",
+			Account:         "User",
+		},
+
+		// These 2 Entries Are For GST
+		{
+			RewardID:        reward.ID,
+			UserID:          reward.UserID,
 			TransactionType: "GST",
 			Amount:          gst,
 			AmountUnit:      "INR",
 			FlowType:        "Debit",
+			Account:         "Company",
 		},
-		// This Entry Is For Brokerage Deduction (Assuming 5%)
 		{
 			RewardID:        reward.ID,
 			UserID:          reward.UserID,
-			Action:          reward.Action,
+			TransactionType: "GST",
+			Amount:          gst,
+			AmountUnit:      "INR",
+			FlowType:        "Credit",
+			Account:         "Government",
+		},
+
+		// These 2 Entries Are For Brokerage
+		{
+			RewardID:        reward.ID,
+			UserID:          reward.UserID,
 			TransactionType: "Brokerage",
 			Amount:          brokerage,
 			AmountUnit:      "INR",
 			FlowType:        "Debit",
+			Account:         "Company",
+		},
+		{
+			RewardID:        reward.ID,
+			UserID:          reward.UserID,
+			TransactionType: "Brokerage",
+			Amount:          brokerage,
+			AmountUnit:      "INR",
+			FlowType:        "Credit",
+			Account:         "Broker",
 		},
 	}
 
