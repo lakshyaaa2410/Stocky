@@ -10,17 +10,73 @@ import (
 	"github.com/lakshyaaa2410/stocky/models"
 	"github.com/lakshyaaa2410/stocky/utilities"
 	"github.com/sirupsen/logrus"
+	"gorm.io/gorm"
 )
+
+func StockRewardsToday(ginCtx *gin.Context) {
+
+	// Converting UserID From String To Int
+	userIdStr := ginCtx.Param("userId")
+	userId, err := strconv.Atoi(userIdStr)
+
+	// Checking If Any Error While Conversion.
+	if err != nil {
+		logrus.Error("Error Pasring User ID")
+		return
+	}
+
+	// Variable To Store Reward
+	var reward models.Reward
+
+	// Checking If User With That ID Exists
+	err = initializers.DB.Where("user_id = ?", userId).First(&reward).Error
+
+	// Checking If The User Is Present Or Not
+	if err != nil {
+		ginCtx.JSON(http.StatusNotFound, gin.H{
+			"status":  "failed",
+			"message": "No User Found With User ID: " + userIdStr,
+		})
+		return
+	}
+
+	// Getting Formatted Date (yyyy-mm-dd) Formatt.
+	_, today := utilities.GetDayAndTime()
+
+	// Variable To Store All The Rewards.
+	var rewards []models.Reward
+
+	// Querying Database To Get All The Reward Of User, For Today.
+	response := initializers.DB.Where("user_id = ? AND DATE(rewarded_at) = ?", reward.UserID, today).Find(&rewards)
+
+	// Checking If Some Database Errors.
+	if response.Error != nil {
+		ginCtx.JSON(http.StatusInternalServerError, gin.H{
+			"status":  "failed",
+			"message": response.Error.Error(),
+		})
+
+		return
+	}
+
+	// Sending Back All The Rewards Of Today, For A User.
+	ginCtx.JSON(http.StatusOK, gin.H{
+		"status":  "success",
+		"count":   len(rewards),
+		"rewards": rewards,
+	})
+
+}
 
 func AddReward(ginCtx *gin.Context) {
 
-	// 1. Initializing A New Reward Variable
+	// Initializing A New Reward Variable
 	var reward models.Reward
 
-	// 2. Binding The Incoming JSON Body Into Reward Variable
+	// Binding The Incoming JSON Body Into Reward Variable
 	err := ginCtx.ShouldBindJSON(&reward)
 
-	// 2.A. Checking If There Is Any Error In The Request Body.
+	// Checking If There Is Any Error In The Request Body.
 	if err != nil {
 		ginCtx.JSON(http.StatusBadRequest, gin.H{
 			"status":  "failed",
@@ -29,10 +85,12 @@ func AddReward(ginCtx *gin.Context) {
 		return
 	}
 
+	// Reward Model Variable To Store Any Duplicate Entry For "Onboarding"
 	var existingReward models.Reward
 
-	// Making Sure The "Action" Is Always First Letter Capitalized
+	// Making Sure "Action" And "Stock Symbol" Are Always First Letter Capitalized
 	reward.Action = utilities.UpperCaseFirstLetter(reward.Action)
+	reward.StockSymbol = utilities.UpperCaseFirstLetter(reward.StockSymbol)
 
 	// 3. Checking If The User Has Already Onboarded Or Not
 	if action := reward.Action; action == "Onboarding" {
@@ -50,18 +108,62 @@ func AddReward(ginCtx *gin.Context) {
 		}
 	}
 
-	reward.RewardedAt = utilities.GetDayAndTime()
+	// Setting Up The Curent IST Time
+	reward.RewardedAt, _ = utilities.GetDayAndTime()
 
-	response := initializers.DB.Create(&reward)
-	if response.Error != nil {
-		ginCtx.JSON(http.StatusConflict, gin.H{
+	// Using Transactions To Safely Create Reward + Ledger Entry.
+	err = initializers.DB.Transaction(func(tx *gorm.DB) error {
+
+		// 1. Creating A Reward Entry First
+		response := tx.Create(&reward)
+
+		// Checking For Possible Errors After Creation Of Reward.
+		if response.Error != nil {
+			ginCtx.JSON(http.StatusConflict, gin.H{
+				"status":  "failed",
+				"message": response.Error.Error(),
+			})
+
+			return err
+		}
+
+		// 2.A Initializing A New Stock Price Struct Variable (To Store Stock Price)
+		var stockPrice models.StockPrice
+
+		// Fetching The Price Of A Stock, Using Stock Symbol.
+		err = tx.Where("stock_symbol = ?", reward.StockSymbol).First(&stockPrice).Error
+
+		// Checking For Possible Errors, If Any, We Rollback.
+		if err != nil {
+			return err
+		}
+
+		// Fetching All The Ledger Entry Queries, Using A Helper Function.
+		var ledgerQueries = createLedgerEntries(&reward, &stockPrice)
+
+		// Traversing Through All The Queries, And Creating A New Entry For Each Type.
+		for _, query := range ledgerQueries {
+			err := tx.Create(&query).Error
+			if err != nil {
+				return err
+			}
+		}
+
+		// Commiting A Transaction
+		return nil
+
+	})
+
+	// Checking Possible Rollback
+	if err != nil {
+		ginCtx.JSON(http.StatusInternalServerError, gin.H{
 			"status":  "failed",
-			"message": response.Error.Error(),
+			"message": err.Error(),
 		})
-
 		return
 	}
 
+	// Returning JSON Response, With
 	ginCtx.JSON(http.StatusCreated, gin.H{
 		"status": "success",
 		"data": gin.H{
@@ -70,19 +172,28 @@ func AddReward(ginCtx *gin.Context) {
 	})
 }
 
-func StockRewardsToday(ginCtx *gin.Context) {
-
-	userIdStr := ginCtx.Param("userId")
-	userId, err := strconv.Atoi(userIdStr)
-
-	if err != nil {
-		logrus.Error("Error Pasring User ID")
-		return
+func createLedgerEntries(reward *models.Reward, stockPrice *models.StockPrice) []models.Ledger {
+	var ledgerEntries = []models.Ledger{
+		// This Entry Is For Stocks Debited
+		{
+			RewardID:        reward.ID,
+			UserID:          reward.UserID,
+			Action:          reward.Action,
+			TransactionType: "Stocks",
+			Amount:          reward.Shares,
+			AmountUnit:      "Stock",
+			FlowType:        "Debit",
+		},
+		{
+			RewardID:        reward.ID,
+			UserID:          reward.UserID,
+			Action:          reward.Action,
+			TransactionType: "Cash Transaction",
+			Amount:          (reward.Shares * stockPrice.StockPrice),
+			AmountUnit:      "INR",
+			FlowType:        "Credit",
+		},
 	}
 
-	ginCtx.JSON(http.StatusOK, gin.H{
-		"status": "success",
-		"data":   userId,
-	})
-
+	return ledgerEntries
 }
