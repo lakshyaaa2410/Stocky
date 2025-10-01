@@ -171,8 +171,10 @@ func AddReward(ginCtx *gin.Context) {
 }
 
 func createLedgerEntries(reward *models.Reward, stockPrice *models.StockPrice) []models.Ledger {
+	brokerage, gst := getDeductions(reward.Shares, stockPrice.StockPrice)
+
 	var ledgerEntries = []models.Ledger{
-		// This Entry Is For Stocks Debited
+		// This Entry Is For Stocks Debited.
 		{
 			RewardID:        reward.ID,
 			UserID:          reward.UserID,
@@ -182,6 +184,7 @@ func createLedgerEntries(reward *models.Reward, stockPrice *models.StockPrice) [
 			AmountUnit:      "Stock",
 			FlowType:        "Debit",
 		},
+		// This Entry Is For Cash Transaction.
 		{
 			RewardID:        reward.ID,
 			UserID:          reward.UserID,
@@ -191,7 +194,34 @@ func createLedgerEntries(reward *models.Reward, stockPrice *models.StockPrice) [
 			AmountUnit:      "INR",
 			FlowType:        "Credit",
 		},
+		// This Entry Is For GST Deduction (Assuming 18%)
+		{
+			RewardID:        reward.ID,
+			UserID:          reward.UserID,
+			Action:          reward.Action,
+			TransactionType: "GST",
+			Amount:          gst,
+			AmountUnit:      "INR",
+			FlowType:        "Debit",
+		},
+		// This Entry Is For Brokerage Deduction (Assuming 5%)
+		{
+			RewardID:        reward.ID,
+			UserID:          reward.UserID,
+			Action:          reward.Action,
+			TransactionType: "Brokerage",
+			Amount:          brokerage,
+			AmountUnit:      "INR",
+			FlowType:        "Debit",
+		},
 	}
 
 	return ledgerEntries
+}
+
+func getDeductions(quantity float64, price float64) (float64, float64) {
+	var brokerageValue = (quantity * price) * 0.05
+	var gstValue = brokerageValue * 0.18
+
+	return brokerageValue, gstValue
 }

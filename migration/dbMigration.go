@@ -31,15 +31,17 @@ func seedingStockPrices() {
 
 	// Cretaing Dummy Stock Prices For Seeding.
 	stockPrices := []models.StockPrice{
-		{StockSymbol: "Reliance", StockPrice: 2500.00},
-		{StockSymbol: "TCS", StockPrice: 1500.00},
-		{StockSymbol: "Wipro", StockPrice: 500.00},
-		{StockSymbol: "Infosys", StockPrice: 1200.00},
+		{StockSymbol: "Reliance", StockPrice: 1000.0},
+		{StockSymbol: "Apple", StockPrice: 1503.436},
+		{StockSymbol: "Wipro", StockPrice: 500.46},
+		{StockSymbol: "Infosys", StockPrice: 1200.63},
+		{StockSymbol: "Amazon", StockPrice: 1900.35},
+		{StockSymbol: "Zoho", StockPrice: 1234.567},
 	}
 
 	// Traversing The Prices "Slice" And Creating A Entry In The Database.
 	for _, prices := range stockPrices {
-		response := initializers.DB.Create(&prices)
+		response := initializers.DB.Save(&prices)
 
 		if response.Error != nil {
 			logrus.Error("Error While Seeding Stock Prices")
