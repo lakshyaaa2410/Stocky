@@ -2,6 +2,7 @@ package initializers
 
 import (
 	"fmt"
+	"os"
 
 	"github.com/sirupsen/logrus"
 	"gorm.io/driver/postgres"
@@ -13,11 +14,16 @@ var DB *gorm.DB
 func ConnectDB() {
 	var err error
 
-	// Using Databse Connection String, Hosted On Neon.
-	dsn := "postgresql://neondb_owner:npg_QEpA8rVvUI7N@ep-shy-lab-a139e4ge-pooler.ap-southeast-1.aws.neon.tech/assignment?sslmode=require&channel_binding=require"
+	// Using Database Connection String, Hosted On Neon.
+	DB_STRING := os.Getenv("DB_STRING")
+
+	if DB_STRING == "" {
+		logrus.Error("Database URL Is Not Defined, Please Define In ENV File")
+		return
+	}
 
 	// Establishing A Connection.
-	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
+	DB, err = gorm.Open(postgres.Open(DB_STRING), &gorm.Config{})
 
 	if err != nil {
 		logrus.Error("Error Connecting To Database")

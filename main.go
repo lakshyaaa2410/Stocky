@@ -22,6 +22,8 @@ func main() {
 
 	// Initializing Gin Router
 	router := gin.Default()
+
+	// Defining Global Scope For All HTML Templates.
 	router.LoadHTMLGlob("templates/*")
 
 	// Home Route, Sending Greetings
@@ -55,3 +57,5 @@ func main() {
 	}
 
 }
+
+// https://stocky-ffqq.onrender.com/
