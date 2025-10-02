@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"math/rand"
 	"net/http"
 
@@ -13,26 +12,35 @@ import (
 
 func UpdateStockPrices(ginCtx *gin.Context) {
 
+	// Variable To Store Rewards
 	var stockPrices []models.StockPrice
 
+	// Fetching Current Stock Prices From Database.
 	err := initializers.DB.Find(&stockPrices).Error
+
+	// Checking For Potential Errors
 	if err != nil {
 		logrus.Error("Error Fetching Stock Prices")
 		return
 	}
 
+	// Looping Thorugh The Result
 	for _, stockPrices := range stockPrices {
+		// Getting The Current Stock Price
 		currentStockPrice := stockPrices.StockPrice
+
+		// Helper Method To Get Randomly Generated New Price
+		// Arguments - (current Price, % Change In The New Price)
 		newStockPrice := getRandomStockPrice(currentStockPrice, 10)
 
+		// Updating The Prices In The Database
 		err := initializers.DB.Model(&stockPrices).Update("StockPrice", newStockPrice).Error
 
+		// Checking For Potential Errors
 		if err != nil {
 			logrus.Error("Error Updating Price")
 			continue
 		}
-
-		fmt.Println("The Current And New Stock Prices Are", currentStockPrice, newStockPrice)
 	}
 
 	ginCtx.JSON(http.StatusOK, gin.H{
@@ -47,7 +55,8 @@ func getRandomStockPrice(currStockPrice float64, diffBy int) float64 {
 	// Converting The Int Percentage Value To Float
 	var percentDiff float64 = float64(diffBy) / 100.00
 
-	differenceRange := rand.Float64()*(2*percentDiff) - percentDiff // This Generates A Random Number In The Range [-percentDiff, +percentDiff]
+	// This Generates A Random Number In The Range [-percentDiff, +percentDiff]
+	differenceRange := rand.Float64()*(2*percentDiff) - percentDiff
 
 	newStockPrice := currStockPrice * (1 + differenceRange)
 	return newStockPrice

@@ -13,8 +13,10 @@ var DB *gorm.DB
 func ConnectDB() {
 	var err error
 
+	// Using Databse Connection String, Hosted On Neon.
 	dsn := "postgresql://neondb_owner:npg_QEpA8rVvUI7N@ep-shy-lab-a139e4ge-pooler.ap-southeast-1.aws.neon.tech/assignment?sslmode=require&channel_binding=require"
 
+	// Establishing A Connection.
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 
 	if err != nil {

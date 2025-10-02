@@ -171,8 +171,10 @@ func AddReward(ginCtx *gin.Context) {
 }
 
 func createLedgerEntries(reward *models.Reward, stockPrice *models.StockPrice) []models.Ledger {
+	// Helper Method To Calculate The Deductions Like GST And Brokerage
 	brokerage, gst := getDeductions(reward.Shares, stockPrice.StockPrice)
 
+	// Creating 8 Entries For The Ledger Table For (Stock, Cash, GST, And Brokerage)(4 - Credit, 4- Debit)
 	var ledgerEntries = []models.Ledger{
 		// These 2 Entries Are For Stocks
 		{
@@ -267,7 +269,11 @@ func createLedgerEntries(reward *models.Reward, stockPrice *models.StockPrice) [
 }
 
 func getDeductions(quantity float64, price float64) (float64, float64) {
+
+	// Calculation Of Brokerage (Assuming 5% Deduction)
 	var brokerageValue = (quantity * price) * 0.05
+
+	// Calculation Of GST (Assuming 18% Deduction)
 	var gstValue = brokerageValue * 0.18
 
 	return brokerageValue, gstValue

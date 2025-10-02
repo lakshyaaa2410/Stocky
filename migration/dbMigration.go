@@ -15,6 +15,7 @@ func init() {
 
 func main() {
 
+	// Migration Of Structs To Database Tables
 	err := initializers.DB.AutoMigrate(&models.Reward{}, &models.StockPrice{}, &models.Ledger{})
 
 	if err != nil {
