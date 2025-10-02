@@ -13,3 +13,23 @@ The system also updates the INR valuation of user holdings hourly via a hypothet
 **Database:** PostgreSQL
 
 **API Client:** Postman
+
+## Endpoints
+
+-   **POST `/reward`**  
+    Adds a reward for a user. Prevents duplicates for actions like "Onboarding," calculates deductions (Brokerage 5%, GST 18%), and logs all transactions in the ledger.
+
+-   **GET `/today-stocks/:userId`**  
+    Fetches all rewards for a user for the current day.
+
+-   **GET `/stats/:userId`**  
+    Fetches user statistics, including total rewards and stock performance.
+
+-   **GET `/historical-inr/:userId`**  
+    Retrieves the historical stock value in INR for a user.
+
+-   **PUT `/update-stock-prices`**  
+    Manually triggers an update for stock prices.
+
+-   **GET `/portfolio/:userId`**  
+    Retrieves the current portfolio of a user, including stocks and cash balance.
