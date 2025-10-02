@@ -183,6 +183,7 @@ func createLedgerEntries(reward *models.Reward, stockPrice *models.StockPrice) [
 			AmountUnit:      "Stock",
 			FlowType:        "Debit",
 			Account:         "Company",
+			Action:          reward.Action,
 		},
 		{
 			RewardID:        reward.ID,
@@ -192,6 +193,7 @@ func createLedgerEntries(reward *models.Reward, stockPrice *models.StockPrice) [
 			AmountUnit:      "Stock",
 			FlowType:        "Credit",
 			Account:         "User",
+			Action:          reward.Action,
 		},
 
 		// These 2 Entries Are For Cash Transaction
@@ -203,6 +205,7 @@ func createLedgerEntries(reward *models.Reward, stockPrice *models.StockPrice) [
 			AmountUnit:      "INR",
 			FlowType:        "Credit",
 			Account:         "Company",
+			Action:          reward.Action,
 		},
 		{
 			RewardID:        reward.ID,
@@ -212,6 +215,7 @@ func createLedgerEntries(reward *models.Reward, stockPrice *models.StockPrice) [
 			AmountUnit:      "INR",
 			FlowType:        "Debit",
 			Account:         "User",
+			Action:          reward.Action,
 		},
 
 		// These 2 Entries Are For GST
@@ -223,6 +227,7 @@ func createLedgerEntries(reward *models.Reward, stockPrice *models.StockPrice) [
 			AmountUnit:      "INR",
 			FlowType:        "Debit",
 			Account:         "Company",
+			Action:          reward.Action,
 		},
 		{
 			RewardID:        reward.ID,
@@ -232,6 +237,7 @@ func createLedgerEntries(reward *models.Reward, stockPrice *models.StockPrice) [
 			AmountUnit:      "INR",
 			FlowType:        "Credit",
 			Account:         "Government",
+			Action:          reward.Action,
 		},
 
 		// These 2 Entries Are For Brokerage
@@ -243,6 +249,7 @@ func createLedgerEntries(reward *models.Reward, stockPrice *models.StockPrice) [
 			AmountUnit:      "INR",
 			FlowType:        "Debit",
 			Account:         "Company",
+			Action:          reward.Action,
 		},
 		{
 			RewardID:        reward.ID,
@@ -252,6 +259,7 @@ func createLedgerEntries(reward *models.Reward, stockPrice *models.StockPrice) [
 			AmountUnit:      "INR",
 			FlowType:        "Credit",
 			Account:         "Broker",
+			Action:          reward.Action,
 		},
 	}
 

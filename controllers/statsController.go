@@ -35,21 +35,21 @@ func GetUserStats(ginCtx *gin.Context) {
 	var sharesToday []TotalSharesTodays
 	var valuation []TotalValuation
 
-	err = getSharesRewardedToday(userId, &sharesToday)
-	err1 := getPortfolioValue(userId, &valuation)
+	err1 := getSharesRewardedToday(userId, &sharesToday)
+	err2 := getPortfolioValue(userId, &valuation)
 
-	if err != nil {
-		fmt.Println(err.Error())
-		return
-	} else if err1 != nil {
+	if err1 != nil {
 		fmt.Println(err1.Error())
+		return
+	} else if err2 != nil {
+		fmt.Println(err2.Error())
 		return
 	}
 
 	ginCtx.JSON(http.StatusOK, gin.H{
-		"status":      "success",
-		"sharesToday": sharesToday,
-		"portfolio":   valuation,
+		"status":              "success",
+		"sharesRewardedToday": sharesToday,
+		"portfolio":           valuation,
 	})
 
 }
@@ -58,19 +58,24 @@ func getSharesRewardedToday(userId int, sharesRewardedToday *[]TotalSharesTodays
 
 	_, today := utilities.GetDayAndTime()
 
-	query := `SELECT stock_symbol, CAST(SUM(shares) AS DOUBLE PRECISION) AS shares 
-			FROM rewards 
-			WHERE user_id = ? AND DATE(rewarded_at) = ? 
-			GROUP BY stock_symbol`
+	query := `SELECT rewardTable.stock_symbol AS stock_symbol,
+    		SUM(rewardTable.shares) AS Shares,
+    		ROUND(SUM(rewardTable.shares * stockPriceTable.stock_price), 2) AS Value
+			FROM rewards rewardTable
+			JOIN stock_prices stockPriceTable 
+    		ON rewardTable.stock_symbol = stockPriceTable.stock_symbol
+			WHERE rewardTable.user_id = ?
+  			AND DATE(rewardTable.rewarded_at) = ?
+			GROUP BY rewardTable.stock_symbol`
 
 	return initializers.DB.Raw(query, userId, today).Scan(&sharesRewardedToday).Error
 }
 
 func getPortfolioValue(userId int, portfolioValue *[]TotalValuation) error {
-	query := `SELECT 
-    		COALESCE(SUM(rewardsTable.shares * stockPriceTable.stock_price), 0) AS portfolio_value
+
+	query := `SELECT ROUND(SUM(rewardsTable.shares * stockPricesTable.stock_price),2) AS portfolio_value
 			FROM rewards rewardsTable
-			JOIN stock_prices stockPriceTable ON rewardsTable.stock_symbol = stockPriceTable.stock_symbol
+			JOIN stock_prices stockPricesTable ON rewardsTable.stock_symbol = stockPricesTable.stock_symbol
 			WHERE rewardsTable.user_id = ?`
 
 	return initializers.DB.Raw(query, userId).Scan(&portfolioValue).Error

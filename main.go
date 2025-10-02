@@ -33,6 +33,12 @@ func main() {
 	// GET Method To Fetch Stock History Of An User
 	router.GET("/historical-inr/:userId", controllers.GetStockHistory)
 
+	// PUT Method For Manual Trigger For Stocks Price Update
+	router.PUT("/update-stock-prices", controllers.UpdateStockPrices)
+
+	// GET Method To Fetch User's Portfolio
+	router.GET("/portfolio/:userId", controllers.GetUserPortfolio)
+
 	// The Server Runs On The Port Number Specified In .env File.
 	// If No Value Is Present, It Runs On 8080 By Default (8080 Should Not Be Occupied)
 	err := router.Run()
