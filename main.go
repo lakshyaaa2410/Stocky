@@ -1,6 +1,8 @@
 package main
 
 import (
+	"net/http"
+
 	"github.com/gin-gonic/gin"
 	"github.com/lakshyaaa2410/stocky/controllers"
 	"github.com/lakshyaaa2410/stocky/initializers"
@@ -20,6 +22,12 @@ func main() {
 
 	// Initializing Gin Router
 	router := gin.Default()
+	router.LoadHTMLGlob("templates/*")
+
+	// Home Route, Sending Greetings
+	router.GET("/", func(ginCtx *gin.Context) {
+		ginCtx.HTML(http.StatusOK, "welcome.tmpl", nil)
+	})
 
 	// POST Method To Add Rewards For A User
 	router.POST("/reward", controllers.AddReward)
