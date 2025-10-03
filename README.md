@@ -112,3 +112,16 @@ You can directly test the API endpoints using the Postman collection:
 [![Run in Postman](https://run.pstmn.io/button.svg)](https://www.postman.com/jashn2/stocky-stock-rewards/overview)
 
 ---
+
+**Snapshots Of Tables**
+- Rewards Table
+   
+   ![Rewards Table](https://github.com/lakshyaaa2410/Stocky/blob/main/assets/Rewards.png)
+  
+- Ledger Table
+   
+   ![Rewards Table](https://github.com/lakshyaaa2410/Stocky/blob/main/assets/Rewards.png)
+
+ - Stocks Price Table
+   
+   ![Rewards Table](https://github.com/lakshyaaa2410/Stocky/blob/main/assets/Stocks.png)
